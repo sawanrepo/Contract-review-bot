@@ -120,7 +120,7 @@ streamlit run app/streamlit_app.py
 | `Streamlit`      | UI for uploading, chat, results  |
 | `LangChain`      | Memory, tools, chains            |
 | `LangGraph`      | State-machine style reasoning    |
-| `FAISS`          | Embedding vector search          |
+| `Chroma`          | Embedding vector search          |
 | `PyPDF2`, `fitz` | PDF text extraction              |
 | `Pydantic`       | Structured schema for outputs    |
 
