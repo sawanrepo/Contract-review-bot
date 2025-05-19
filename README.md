@@ -1,7 +1,7 @@
 
 # 🤖 Contract Review Bot (LangGraph + Streamlit)
 
-An AI-powered contract analysis assistant that allows users to upload legal documents (PDF/TXT), analyze them with structured outputs, and interact through a Streamlit interface. The bot uses **LangChain**, **LangGraph**, **RAG**, and **FAISS**, with **schema-based reasoning** and memory.
+An AI-powered contract analysis assistant that allows users to upload legal documents (PDF/TXT), analyze them with structured outputs, and interact through a Streamlit interface. The bot uses **LangChain**, **LangGraph**, **RAG**, and **CHROMA**, with **schema-based reasoning** and memory.
 
 ---
 
@@ -106,7 +106,14 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Run Streamlit App
+### 4. Set Up Environment Variables
+'''bash
+cp .env.template .env # On Windows: copy .env.template .env
+'''
+# Then open .env and fill in the required credentials or keys.
+
+
+### 5. Run Streamlit App
 ```bash
 streamlit run app/streamlit_app.py
 ```
