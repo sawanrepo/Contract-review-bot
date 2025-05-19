@@ -3,6 +3,9 @@ from nodes.rag_node import rag_answer
 from nodes.risk_node import analyze_risk
 from nodes.summary_node import summarize_contract
 
+#later two more intent may be added like full file risk analysis and full file summary.
+#this is just a basic flow to show how it works , later it will be improved with langgraph flow with nodes and edges.
+
 def langgraph_flow(query, context):
     intent = classify_query(query)
 
