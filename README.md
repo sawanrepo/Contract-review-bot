@@ -107,10 +107,10 @@ pip install -r requirements.txt
 ```
 
 ### 4. Set Up Environment Variables
-'''bash
+```bash
 cp .env.template .env # On Windows: copy .env.template .env
-'''
-# Then open .env and fill in the required credentials or keys.
+```
+#### Then open .env and fill in the required credentials or keys.
 
 
 ### 5. Run Streamlit App
