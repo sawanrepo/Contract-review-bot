@@ -115,7 +115,7 @@ cp .env.template .env # On Windows: copy .env.template .env
 
 ### 5. Run Streamlit App
 ```bash
-streamlit run app/streamlit_app.py
+streamlit run app/streamlit_app.py #if fails try " streamlit run app/streamlit_app.py --server.fileWatcherType none "
 ```
 
 ---

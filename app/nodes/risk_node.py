@@ -1,9 +1,9 @@
-from app.schema import QueryOutput
-from app.utils import get_multiquery_docs
+from schema import QueryOutput
+from utils import get_multiquery_docs
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
-from app.vectorstore import VectorStore
+from vectorstore import VectorStore
 import os
 
 load_dotenv()

@@ -1,4 +1,4 @@
-from app.schema import IntentOutput
+from schema import IntentOutput
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
@@ -27,16 +27,7 @@ Query: {input}
 
 structured_model = llm.with_structured_output(IntentOutput)
 
-chain = template | structured_model
-
-
-
-if __name__ == "__main__":
-    result = chain.invoke("give me summary of this file")
-    print(result)
-    print(result.intent)
-    result1 = chain.invoke("give me summary of this file and tell me risk level of this file")
-    print(result1)
-    print(result1.intent)
-    result2 = chain.invoke("what is turnover period")
-    print(result2.intent)
+chain = template | structured_model 
+def classify_query(query: str) -> IntentOutput:
+    response = chain.invoke({"input": query})
+    return response

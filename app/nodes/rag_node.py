@@ -1,8 +1,8 @@
-from app.schema import QueryOutput
+from schema import QueryOutput
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
-from app.vectorstore import VectorStore
+from vectorstore import VectorStore
 import os
 
 load_dotenv()
@@ -32,7 +32,7 @@ Please provide the answer and specify the list of page numbers of the document e
 
 )
 
-def get_answer(query: str) -> QueryOutput:
+def rag_answer(query: str) -> QueryOutput:
     vs = VectorStore()
     docs = vs.search(query, k= 3)
     context = "\n\n".join(
