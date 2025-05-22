@@ -1,7 +1,7 @@
 
 # 🤖 Contract Review Bot (LangGraph + Streamlit)
 
-An AI-powered contract analysis assistant that allows users to upload legal documents (PDF/TXT), analyze them with structured outputs, and interact through a Streamlit interface. The bot uses **LangChain**, **LangGraph**, **RAG**, and **CHROMA**, with **schema-based reasoning** and memory.
+An AI-powered contract analysis assistant that allows users to upload legal documents (PDF/TXT), analyze them with structured outputs, and interact through a Streamlit interface. The bot uses **LangChain**, **LangGraph**, **RAG**, and **FAISS**, with **schema-based reasoning** and memory.
 
 ---
 
@@ -127,7 +127,7 @@ streamlit run app/streamlit_app.py #if fails try " streamlit run app/streamlit_a
 | `Streamlit`      | UI for uploading, chat, results  |
 | `LangChain`      | Memory, tools, chains            |
 | `LangGraph`      | State-machine style reasoning    |
-| `Chroma`          | Embedding vector search          |
+| `faiss`          | Embedding vector search          |
 | `PyPDF2`, `fitz` | PDF text extraction              |
 | `Pydantic`       | Structured schema for outputs    |
 

@@ -1,4 +1,6 @@
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 import os
 
 def load_documents(file_path):
@@ -16,11 +18,19 @@ def load_documents(file_path):
 
     extension = os.path.splitext(file_path_to_use)[1].lower()
     if extension == '.pdf':
-        loader = PyPDFLoader(file_path_to_use,encoding ="utf-8")
+        loader = PyPDFLoader(file_path_to_use)
+        documents = loader.load()
+        return documents
     elif extension == '.txt':
         loader = TextLoader(file_path_to_use, encoding="utf-8")
+        documents = loader.load()
+        text_splitter = RecursiveCharacterTextSplitter(
+            separators=["\n\n", "\n", " ", ""], 
+            chunk_size=1000,
+            chunk_overlap=200,
+            length_function=len,
+            is_separator_regex=False
+        )
+        return text_splitter.split_documents(documents)
     else:
         raise ValueError("Unsupported file type. Please upload a PDF or TXT file.")
-
-    documents = loader.load()
-    return documents

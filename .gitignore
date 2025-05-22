@@ -5,3 +5,5 @@ __pycache__/
 2024BCS0164 SAWAN KUMAR (1).pdf
 vectorstore_db/
 temp/
+faiss_store/
+vectorstore_db_faiss/

@@ -32,12 +32,11 @@ Please provide the answer and specify the list of page numbers of the document e
 
 )
 
-def rag_answer(query: str) -> QueryOutput:
-    vs = VectorStore()
-    docs = vs.search(query, k= 3)
-    context = "\n\n".join(
-    f"Page {doc.metadata.get('page_number', 'unknown')}:\n{doc.page_content}" 
-    for doc in docs
+def rag_answer(query: str, context: VectorStore) -> QueryOutput:
+    docs = context.search(query, k=3)
+    context_text = "\n\n".join(
+        f"Page {doc.metadata.get('page_number', 'unknown')}:\n{doc.page_content}"
+        for doc in docs
     )
     chain = template | structured_query_model
-    return chain.invoke({"context": context, "query": query}) 
+    return chain.invoke({"context": context_text, "query": query})
