@@ -36,7 +36,6 @@ class VectorStore:
                 for d in batch:
                     print(f"Doc len: {len(d.page_content)}, metadata: {d.metadata}")
                 if self.vectorstore is None:
-                    # Create new FAISS store from first batch
                     self.vectorstore = FAISS.from_documents(batch, self.embedding_model)
                 else:
                     self.vectorstore.add_documents(batch)
@@ -56,3 +55,14 @@ class VectorStore:
             print("Vector store is empty, no documents to search.")
             return []
         return self.vectorstore.similarity_search(query, k=k)
+    def clear(self):
+        self.vectorstore = None
+        index_path = os.path.join(self.persist_directory, "index.faiss")
+        store_path = os.path.join(self.persist_directory, "index.pkl")
+        
+        if os.path.exists(index_path):
+            os.remove(index_path)
+            print("Deleted FAISS index.faiss")
+        if os.path.exists(store_path):
+            os.remove(store_path)
+            print("Deleted FAISS index.pkl")
