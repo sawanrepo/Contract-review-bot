@@ -32,11 +32,17 @@ Please provide the answer and specify the list of page numbers of the document e
 
 )
 
-def rag_answer(query: str, context: VectorStore) -> QueryOutput:
+def rag_answer(query: str, context: VectorStore,memory: list = None) -> QueryOutput:
     docs = context.search(query, k=3)
     context_text = "\n\n".join(
         f"Page {doc.metadata.get('page_number', 'unknown')}:\n{doc.page_content}"
         for doc in docs
     )
+    memory_context = ""
+    if memory:
+        memory_context = "\n\nChat History:\n" + "\n".join(
+            f"{m['role'].capitalize()}: {m['content']}" for m in memory[-5:] #last 5 messages as memory context.
+        )
+    full_context = f"{memory_context}\n\nContract Excerpts:\n{context_text}"
     chain = template | structured_query_model
-    return chain.invoke({"context": context_text, "query": query})
+    return chain.invoke({"context": full_context, "query": query})

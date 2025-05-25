@@ -30,8 +30,8 @@ Respond with a well-structured summary and list of page numbers where you found 
 """
 )
 
-def summarize_contract(vectorstore=vs, k: int = 30) -> QueryOutput:
-    docs = vectorstore.search("summarize the contract", k=k)
+def summarize_contract(vectorstore=vs,memory:list = None ) -> QueryOutput:
+    docs = vectorstore.search("summarize the contract", k=10)  # Fetching more documents for a comprehensive summary
     if not docs:
         return QueryOutput(answer="No relevant content found for summarization.", page_numbers=[])
 
@@ -39,6 +39,12 @@ def summarize_contract(vectorstore=vs, k: int = 30) -> QueryOutput:
         f"Page {doc.metadata.get('page_number', 'unknown')}:\n{doc.page_content}"
         for doc in docs
     )
+    memory_context = ""
+    if memory:
+        memory_context = "\n\nChat History:\n" + "\n".join(
+            f"{m['role'].capitalize()}: {m['content']}" for m in memory[-5:]  # last 5 messages as memory context.
+        )
+    full_context = f"{memory_context}\n\nContract Excerpts:\n{context}"
 
     chain = template | structured_model
-    return chain.invoke({"context": context})
+    return chain.invoke({"context": full_context})

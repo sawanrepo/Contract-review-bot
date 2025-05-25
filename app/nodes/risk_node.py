@@ -31,8 +31,8 @@ Provide your analysis and **mention the list of page numbers** where the risky c
 }}
 """
 )
-def analyze_risk(query: str, vectorstore=vs, k: int = 3) -> QueryOutput:
-    docs = get_multiquery_docs(query, vectorstore, k=k)
+def analyze_risk(query: str, vectorstore=vs, memory:list = None) -> QueryOutput:
+    docs = get_multiquery_docs(query, vectorstore, 3)
     if not docs:
         return QueryOutput(answer="No relevant contract excerpts found.", page_numbers=[])
         #later we will use to do web search to give reply based on Country law and other legal aspects mentioning query wasnt found in doc but according to....
@@ -40,5 +40,11 @@ def analyze_risk(query: str, vectorstore=vs, k: int = 3) -> QueryOutput:
         f"Page {doc.metadata.get('page_number', 'unknown')}:\n{doc.page_content}"
         for doc in docs
     )
+    memory_context = ""
+    if memory:
+        memory_context = "\n\nChat History:\n" + "\n".join(
+            f"{m['role'].capitalize()}: {m['content']}" for m in memory[-5:]  # last 5 messages as memory context.
+        )
+    full_context = f"{memory_context}\n\nContract Excerpts:\n{context}"
     chain = template | structured_model
-    return chain.invoke({"context": context, "query": query})
+    return chain.invoke({"context": full_context, "query": query})
