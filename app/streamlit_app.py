@@ -2,7 +2,7 @@ import streamlit as st
 from vectorstore import VectorStore
 from document_loader import load_documents
 from langchain.schema import Document
-from langgraph_flow import langgraph_flow
+from langgraph_flow import contract_graph
 from memory import ChatMemory
 
 st.set_page_config(page_title="Contract Review Bot 🤖", layout="wide")
@@ -43,11 +43,10 @@ if st.session_state.document_loaded:
         st.session_state.ChatMemory.clear()
         st.success("🧹 Chat cleared!")
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"], avatar="👤" if message["role"] == "user" else "🤖"):
-        st.markdown(message["content"])
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"], avatar="👤" if message["role"] == "user" else "🤖"):
+            st.markdown(message["content"])
 
-if st.session_state.document_loaded:
     user_input = st.chat_input("Type your query or request a summary/risk analysis...")
 
     if user_input:
@@ -57,22 +56,22 @@ if st.session_state.document_loaded:
 
         with st.chat_message("assistant", avatar="🤖"):
             with st.spinner("🤖 Thinking..."):
-                result = langgraph_flow(query=user_input, context=vs,memory=st.session_state.ChatMemory.get_messages())
+                try:
+                    result = contract_graph.invoke({
+                        "query": user_input,
+                        "context": vs,
+                        "memory": st.session_state.ChatMemory.get_messages()
+                    })
+                    bot_response = result.get("final_answer","")
+                    if not bot_response:
+                        bot_response = "⚠️ Sorry, I couldn't generate a response. Please try again."
 
-                if "error" in result:
-                    bot_response = f"❌ Error: {result['error']}"
-                else:
-                    bot_response = ""
-                    if "summary" in result:
-                        bot_response += f"### 🧾 Summary\n{result['summary'].answer}\n📄 **Pages:** {result['summary'].page_numbers}\n\n"
-                    if "risk_analysis" in result:
-                        bot_response += f"### ⚠️ Risk Analysis\n{result['risk_analysis'].answer}\n📄 **Pages:** {result['risk_analysis'].page_numbers}\n\n"
-                    if "query_answer" in result:
-                        bot_response += f"### 🤖 Answer\n{result['query_answer'].answer}\n📄 **Pages:** {result['query_answer'].page_numbers}\n\n"
+                except Exception as e:
+                    bot_response = f"❌ Error: {str(e)}"
 
-                bot_response = bot_response.strip()
                 st.markdown(bot_response)
-                st.session_state.messages.append({"role": "assistant", "content": bot_response}) #to display previous messages in ui.
-                st.session_state.ChatMemory.add_message("assistant", bot_response) 
+                st.session_state.messages.append({"role": "assistant", "content": bot_response})
+                st.session_state.ChatMemory.add_message("assistant", bot_response)
+
 else:
     st.info("📄 Please upload a contract to begin the chat.")

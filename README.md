@@ -31,13 +31,14 @@ contract-review-bot/
 │   ├── langgraph_flow.py          # LangGraph flow and execution
 │   ├── memory.py                  # LangChain memory (per session)
 │   ├── schema.py                  # Pydantic schemas for structured output
-│   ├── utils.py                   # Parsers, highlight tools, etc.
+│   ├── utils.py                   # search with mutliple sub queries
+│    ├── tools.py                   # tools for Agents.
 │   └── nodes/                     # LangGraph nodes
 │       ├── classifier_node.py     # Route query to the right node
 │       ├── rag_node.py            # Retrieve + LLM answer
 │       ├── risk_node.py           # Risk scoring of clauses
 │       ├── summary_node.py        # Contract summarization
-│       └── compliance_node.py     # Rule-based compliance checks (optional)
+│       └── compliance_node.py     # Rule-based compliance checks
 │
 ├── temp_files/                    # User-uploaded contract PDFs/TXTs
 ├── requirements.txt               # Python dependencies
@@ -63,23 +64,7 @@ Start → Classifier →
    └─→ Compliance Check
 ```
 
-### 🧾 3. Structured Output
-Each node returns structured responses like:
-```json
-{
-  "type": "risk_analysis",
-  "clauses": [
-    {
-      "clause_type": "Termination",
-      "risk_score": 8.5,
-      "comment": "Unilateral termination clause found.",
-      "excerpt": "The lessor may terminate the contract at any time."
-    }
-  ]
-}
-```
-
-### 💬 4. Streamlit UI
+### 💬 3. Streamlit UI
 - Show chat-style interactions
 - Highlight clause excerpts
 - Display risk scores and summaries

@@ -48,9 +48,3 @@ def get_multiquery_docs(query: str, vectorstore, k: int = 3):
                 seen.add(key)
     
     return all_docs
-
-
-if __name__ == "__main__":
-    query = "What are the penalties for breach of contract?"
-    subqueries = generate_subqueries(query)
-    print(subqueries)
