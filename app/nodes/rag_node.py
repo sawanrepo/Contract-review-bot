@@ -24,6 +24,7 @@ User Query:
 
 Please provide the answer and specify the list of page numbers of the document excerpts where you found the answer, in this JSON format:
 If you're unsure or it requires compliance check or external legal info, call the appropriate tool.
+while calling compliance_tool, pass the context Excerpts and user query as a single string.
 
 {{
   "answer": "...",
@@ -52,7 +53,8 @@ def rag_answer(query: str, context, memory: list = None):
         tools=TOOLS,
         llm=llm,
         agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-        verbose=True
+        verbose=True,
+        handle_parsing_errors=True,
     )
 
     return agent.invoke({"input": prompt_text})

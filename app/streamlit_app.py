@@ -1,11 +1,17 @@
 import streamlit as st
+st.set_page_config(page_title="Contract Review Bot 🤖", layout="wide")
+
+loading_placeholder = st.empty()
+loading_placeholder.text("⏳ Loading the Contract Review Bot...")
+
 from vectorstore import VectorStore
 from document_loader import load_documents
 from langchain.schema import Document
 from langgraph_flow import contract_graph
 from memory import ChatMemory
 
-st.set_page_config(page_title="Contract Review Bot 🤖", layout="wide")
+loading_placeholder.empty()
+
 st.title("💬 Contract Review Chatbot")
 
 vs = VectorStore()
@@ -62,16 +68,23 @@ if st.session_state.document_loaded:
                         "context": vs,
                         "memory": st.session_state.ChatMemory.get_messages()
                     })
-                    bot_response = result.get("final_answer","")
-                    if not bot_response:
-                        bot_response = "⚠️ Sorry, I couldn't generate a response. Please try again."
+                    bot_response_obj = result.get("final_answer", None)
+
+                    if not bot_response_obj or not getattr(bot_response_obj, "answer", None):
+                        bot_response_text = "⚠️ Sorry, I couldn't generate a response. Please try again."
+                    else:
+                        bot_response_text = str(bot_response_obj.answer)
+                        page_nums = getattr(bot_response_obj, "page_numbers", [])
+                        if page_nums:
+                            pages_str = ", ".join(str(p) for p in page_nums)
+                            bot_response_text += f"\n\n📄 Page(s): {pages_str}"
 
                 except Exception as e:
-                    bot_response = f"❌ Error: {str(e)}"
+                    bot_response_text = f"❌ Error: {str(e)}"
 
-                st.markdown(bot_response)
-                st.session_state.messages.append({"role": "assistant", "content": bot_response})
-                st.session_state.ChatMemory.add_message("assistant", bot_response)
+                st.markdown(bot_response_text.replace('\\n', '\n'))
+                st.session_state.messages.append({"role": "assistant", "content": bot_response_text})
+                st.session_state.ChatMemory.add_message("assistant", bot_response_text)
 
 else:
     st.info("📄 Please upload a contract to begin the chat.")

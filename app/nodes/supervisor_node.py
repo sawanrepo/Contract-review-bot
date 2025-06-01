@@ -1,29 +1,70 @@
-# will be updated to llm later now just a simple function to return the final answer.
+from schema import GraphState, QueryOutput
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import ChatPromptTemplate
+import os
 
-from schema import GraphState
+llm = ChatGoogleGenerativeAI(model=os.getenv("MODEL_NAME"))
+structured_llm = llm.with_structured_output(QueryOutput)
+
+supervisor_prompt_template = """
+You are a legal assistant.
+
+Given the following findings, generate a clear, helpful final response for the user’s legal query.
+
+User Query:
+{query}
+
+{summary_section}
+{risk_section}
+{rag_section}
+
+Only return this JSON format:
+
+{{
+  "answer": "your response here",
+  "page_numbers": []
+}}
+"""
+
+def prepare_supervisor_prompt_inputs(query, summary=None, risk_analysis=None, rag_answer=None):
+    summary_section = f"Summary of the contract:\n{summary}\n" if summary else ""
+    risk_section = f"Identified risks:\n{risk_analysis}\n" if risk_analysis else ""
+    rag_section = f"Answer to the user’s question:\n{rag_answer}\n" if rag_answer else ""
+
+    return {
+        "query": query,
+        "summary_section": summary_section,
+        "risk_section": risk_section,
+        "rag_section": rag_section,
+    }
+
+supervisor_prompt = ChatPromptTemplate.from_template(supervisor_prompt_template)
+
+supervisor_chain = supervisor_prompt | structured_llm
+
+def extract_page_numbers(obj):
+    try:
+        return sorted(set(obj.page_numbers)) if hasattr(obj, "page_numbers") and obj.page_numbers else []
+    except:
+        return []
 
 def supervisor_node(state: GraphState):
     query = state["query"]
-    summary = state.get("summary_node")
-    rag_answer = state.get("rag_answer_node")
-    risk_analysis = state.get("risk_analysis_node")
+    summary = getattr(state.get("summary_node"), "answer", None) or state.get("summary_node")
+    rag_answer = getattr(state.get("rag_answer_node"), "answer", None) or state.get("rag_answer_node")
+    risk_analysis = getattr(state.get("risk_analysis_node"), "answer", None) or state.get("risk_analysis_node")
 
-    parts = []
+    input_data = prepare_supervisor_prompt_inputs(query, summary, risk_analysis, rag_answer)
+    response = supervisor_chain.invoke(input_data)
 
-    if summary:
-        parts.append("Here is a brief summary of the document:")
-        parts.append(summary.answer if hasattr(summary, 'answer') else str(summary)) 
+    combined_pages = (
+        extract_page_numbers(state.get("summary_node")) +
+        extract_page_numbers(state.get("rag_answer_node")) +
+        extract_page_numbers(state.get("risk_analysis_node"))
+    )
+    response.page_numbers = sorted(set(combined_pages))
 
-    if risk_analysis:
-        parts.append("Identified potential risks:")
-        parts.append(risk_analysis.answer if hasattr(risk_analysis, 'answer') else str(risk_analysis)) 
-
-    if rag_answer:
-        parts.append("Response to your query:")
-        parts.append(rag_answer.answer if hasattr(rag_answer, 'answer') else str(rag_answer))  
-
-    refined = f"Dear user, based on your legal inquiry — \"{query}\" — please find the following:"
-    refined += "\n\n" + "\n\n".join(parts)
-    refined += "\n\nIf you have any further concerns or need clarification on a specific clause, feel free to ask."
-
-    return {"final_answer": refined.strip(), **state} 
+    return {
+        "final_answer": response,
+        **state
+    }

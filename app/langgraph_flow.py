@@ -40,7 +40,6 @@ graph.add_node("rag", rag_node)
 graph.add_node("summary", summary_node)
 graph.add_node("risk", risk_node)
 graph.add_node("supervisor", supervisor_node)
-# graph.add_node("output", output_node)
 
 graph.add_conditional_edges("classify", route_intents, {
     "rag": "rag",
@@ -54,6 +53,6 @@ graph.add_edge("risk", "supervisor")
 graph.add_edge("supervisor", END)
 
 graph.set_entry_point("classify")
-# graph.set_finish_point("output")
-
 contract_graph = graph.compile()
+if __name__ == "__main__":
+    graph.visualize("contract_graph.png", format="png", show=True)
