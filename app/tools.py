@@ -1,6 +1,8 @@
 from langchain.tools import StructuredTool
 from nodes.compliance_node import check_compliance
 from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
+from dotenv import load_dotenv
+load_dotenv()
 
 def compliance_checker(context: str):
     result = check_compliance(context)
@@ -8,7 +10,7 @@ def compliance_checker(context: str):
 
 def legal_search(query: str):
     tavily = TavilySearchAPIWrapper()
-    result = tavily.search(query)
+    result = tavily.invoke({"query": query})
     return result 
 
 compliance_tool = StructuredTool.from_function(
