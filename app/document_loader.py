@@ -1,9 +1,10 @@
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from typing import List
 import os
 
-def load_documents(file_path):
+def load_documents(file_path) -> List[Document]:
     if hasattr(file_path, 'name') and hasattr(file_path, 'getbuffer'):
         temp_dir = "temp"
         os.makedirs(temp_dir, exist_ok=True)
@@ -17,20 +18,27 @@ def load_documents(file_path):
         raise ValueError("Invalid input. Must be a file path string or uploaded file.")
 
     extension = os.path.splitext(file_path_to_use)[1].lower()
+    text_splitter = RecursiveCharacterTextSplitter(
+        separators=["\n\n", "\n", " ", ""],
+        chunk_size=900,
+        chunk_overlap=150,
+        length_function=len,
+        is_separator_regex=False
+    )
+
     if extension == '.pdf':
         loader = PyPDFLoader(file_path_to_use)
-        documents = loader.load()
-        return documents
+        raw_documents = loader.load()
+        # Normalize page metadata to 1-based 'page_number'
+        for doc in raw_documents:
+            page_idx = doc.metadata.get("page", 0)
+            doc.metadata["page_number"] = page_idx + 1
+        return text_splitter.split_documents(raw_documents)
     elif extension == '.txt':
         loader = TextLoader(file_path_to_use, encoding="utf-8")
-        documents = loader.load()
-        text_splitter = RecursiveCharacterTextSplitter(
-            separators=["\n\n", "\n", " ", ""], 
-            chunk_size=1000,
-            chunk_overlap=200,
-            length_function=len,
-            is_separator_regex=False
-        )
-        return text_splitter.split_documents(documents)
+        raw_documents = loader.load()
+        for doc in raw_documents:
+            doc.metadata["page_number"] = 1
+        return text_splitter.split_documents(raw_documents)
     else:
         raise ValueError("Unsupported file type. Please upload a PDF or TXT file.")

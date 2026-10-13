@@ -6,28 +6,31 @@ import os
 
 load_dotenv()
 
-llm = ChatGoogleGenerativeAI(model =os.getenv("MODEL_NAME"))
-
 template = PromptTemplate(
     input_variables=["input"],
-    template="""
-You are a classification model.
+    template="""You are an intent classifier for a contract review assistant.
 
-Classify the query into one or more of the following intents ONLY (case sensitive, exact spelling):
-- "risk_analysis"
-- "summary"
-- "query_answer"
-Dont use any other keyword than above 3.
-Dont say summarize instead of summary.
-Dont say risk analysis instead of risk_analysis.
-Respond ONLY with a valid JSON array of these exact strings.
-Query: {input}
+Classify the user's request into one or more of these intents:
+- "risk_analysis": when the user wants to identify risks, liabilities, red flags, or dangerous clauses.
+- "summary": when the user wants a summary, overview, key points, or high-level walkthrough.
+- "query_answer": when the user asks a specific question about a clause, general contract terms, greeting, or any other query.
+
+If uncertain, default to ["query_answer"].
+
+User Request: {input}
 """
 )
 
-structured_model = llm.with_structured_output(IntentOutput)
-
-chain = template | structured_model 
 def classify_query(query: str) -> IntentOutput:
-    response = chain.invoke({"input": query})
-    return response
+    try:
+        model = os.getenv("MODEL_NAME", "gemini-2.5-flash")
+        llm = ChatGoogleGenerativeAI(model=model, temperature=0.0)
+        structured_model = llm.with_structured_output(IntentOutput)
+        chain = template | structured_model
+        response = chain.invoke({"input": query})
+        if not response or not response.intent:
+            return IntentOutput(intent=["query_answer"])
+        return response
+    except Exception as e:
+        print(f"Classifier error (falling back to query_answer): {e}")
+        return IntentOutput(intent=["query_answer"])

@@ -1,68 +1,87 @@
-from typing import List
-from langchain.schema import Document
+from typing import List, Optional
+from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 import os
 
+_DEFAULT_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+_global_embeddings = None
+
+def get_shared_embeddings(model_name: str = _DEFAULT_MODEL_NAME):
+    global _global_embeddings
+    if _global_embeddings is None:
+        _global_embeddings = HuggingFaceEmbeddings(
+            model_name=model_name,
+            model_kwargs={"device": "cpu"}
+        )
+    return _global_embeddings
+
 class VectorStore:
     def __init__(
         self,
-        embedding_model_name: str = "sentence-transformers/paraphrase-MiniLM-L3-v2",
-        persist_directory: str = "vectorstore_db_faiss"
+        embedding_model=None,
+        embedding_model_name: str = _DEFAULT_MODEL_NAME,
+        persist_directory: Optional[str] = None
     ):
-        self.embedding_model = HuggingFaceEmbeddings(
-            model_name=embedding_model_name,
-            model_kwargs={"device": "cpu"}  # or "cuda" if you have GPU
-        )
-        self.persist_directory = persist_directory
-
-        if os.path.exists(os.path.join(persist_directory, "index.faiss")):
-            print("Loading existing FAISS vector store...")
-            self.vectorstore = FAISS.load_local(
-                persist_directory,
-                self.embedding_model,
-                allow_dangerous_deserialization=True,
-            )
+        if embedding_model is not None:
+            self.embedding_model = embedding_model
         else:
-            print("Creating new FAISS vector store...")
-            self.vectorstore = None
+            self.embedding_model = get_shared_embeddings(embedding_model_name)
 
-    def add_documents(self, documents: List[Document], batch_size: int = 4):
-        print(f"Starting to add {len(documents)} documents")
-        for i in range(0, len(documents), batch_size):
-            batch = documents[i:i+batch_size]
-            print(f"Processing batch {i} to {i+len(batch)-1}")
+        self.persist_directory = persist_directory
+        self.vectorstore: Optional[FAISS] = None
+        self.documents: List[Document] = []
+
+        if persist_directory and os.path.exists(os.path.join(persist_directory, "index.faiss")):
             try:
-                for d in batch:
-                    print(f"Doc len: {len(d.page_content)}, metadata: {d.metadata}")
-                if self.vectorstore is None:
-                    self.vectorstore = FAISS.from_documents(batch, self.embedding_model)
-                else:
-                    self.vectorstore.add_documents(batch)
-                print(f"Successfully added batch {i} to {i+len(batch)-1}")
+                self.vectorstore = FAISS.load_local(
+                    persist_directory,
+                    self.embedding_model,
+                    allow_dangerous_deserialization=True,
+                )
             except Exception as e:
-                import traceback
-                traceback.print_exc()
-                print(f"Error adding batch: {str(e)}")
-                raise
+                print(f"Notice: Could not load FAISS from {persist_directory}: {e}")
+                self.vectorstore = None
 
-        print("Persisting vector store...")
-        self.vectorstore.save_local(self.persist_directory)
-        print("Documents added and persisted successfully")
-
-    def search(self, query: str, k: int = 3) -> List[Document]:
+    def add_documents(self, documents: List[Document], batch_size: int = 16):
+        if not documents:
+            return
+        self.documents.extend(documents)
         if self.vectorstore is None:
-            print("Vector store is empty, no documents to search.")
+            self.vectorstore = FAISS.from_documents(documents[:batch_size], self.embedding_model)
+            remaining = documents[batch_size:]
+        else:
+            remaining = documents
+
+        if remaining:
+            for i in range(0, len(remaining), batch_size):
+                batch = remaining[i:i + batch_size]
+                self.vectorstore.add_documents(batch)
+
+        if self.persist_directory:
+            try:
+                self.vectorstore.save_local(self.persist_directory)
+            except Exception as e:
+                print(f"Notice: Could not save FAISS to disk: {e}")
+
+    def search(self, query: str, k: int = 4) -> List[Document]:
+        if self.vectorstore is None:
             return []
         return self.vectorstore.similarity_search(query, k=k)
+
+    def get_all_documents(self) -> List[Document]:
+        return list(self.documents)
+
     def clear(self):
         self.vectorstore = None
-        index_path = os.path.join(self.persist_directory, "index.faiss")
-        store_path = os.path.join(self.persist_directory, "index.pkl")
-        
-        if os.path.exists(index_path):
-            os.remove(index_path)
-            print("Deleted FAISS index.faiss")
-        if os.path.exists(store_path):
-            os.remove(store_path)
-            print("Deleted FAISS index.pkl")
+        self.documents = []
+        if self.persist_directory:
+            index_path = os.path.join(self.persist_directory, "index.faiss")
+            store_path = os.path.join(self.persist_directory, "index.pkl")
+            try:
+                if os.path.exists(index_path):
+                    os.remove(index_path)
+                if os.path.exists(store_path):
+                    os.remove(store_path)
+            except Exception as e:
+                print(f"Notice during clear: {e}")

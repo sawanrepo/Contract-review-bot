@@ -7,30 +7,50 @@ from nodes.risk_node import analyze_risk
 from nodes.supervisor_node import supervisor_node
 
 def classifier_node(state: GraphState):
-    intents = classify_query(state["query"]).intent
-    return {"intents": intents or []}
+    classification = classify_query(state.get("query", ""))
+    intents = classification.intent if classification and classification.intent else ["query_answer"]
+    return {"intents": intents}
 
 def rag_node(state: GraphState):
-    return {"rag_answer_node": rag_answer(state["query"], state["context"], memory=state["memory"])}
+    return {
+        "rag_answer_node": rag_answer(
+            query=state.get("query", ""),
+            context=state.get("context"),
+            memory=state.get("memory", [])
+        )
+    }
 
 def summary_node(state: GraphState):
-    return {"summary_node": summarize_contract(state["context"], memory=state["memory"])}
+    return {
+        "summary_node": summarize_contract(
+            vectorstore=state.get("context"),
+            memory=state.get("memory", [])
+        )
+    }
 
 def risk_node(state: GraphState):
-    return {"risk_analysis_node": analyze_risk(state["query"], state["context"], memory=state["memory"])}
-
-# def output_node(state: GraphState):
-#     return state["final_answer"]
+    return {
+        "risk_analysis_node": analyze_risk(
+            query=state.get("query", ""),
+            vectorstore=state.get("context"),
+            memory=state.get("memory", [])
+        )
+    }
 
 def route_intents(state: GraphState):
     branches = []
-    for intent in state["intents"]:
-        if intent == "query_answer":
+    for intent in state.get("intents", []):
+        if intent == "query_answer" and "rag" not in branches:
             branches.append("rag")
-        elif intent == "summary":
+        elif intent == "summary" and "summary" not in branches:
             branches.append("summary")
-        elif intent == "risk_analysis":
+        elif intent == "risk_analysis" and "risk" not in branches:
             branches.append("risk")
+
+    # Safe fallback if classifier produced nothing matched
+    if not branches:
+        branches.append("rag")
+
     return branches
 
 graph = StateGraph(GraphState)
@@ -54,5 +74,3 @@ graph.add_edge("supervisor", END)
 
 graph.set_entry_point("classify")
 contract_graph = graph.compile()
-if __name__ == "__main__":
-    graph.visualize("contract_graph.png", format="png", show=True)
