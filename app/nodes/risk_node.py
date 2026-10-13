@@ -82,7 +82,11 @@ def analyze_risk(query: str, vectorstore=None, memory: list = None) -> QueryOutp
             "query": query
         })
 
-        if not result.page_numbers and retrieved_pages:
+        # Ground page citations against retrieved evidence to eliminate hallucinated page numbers
+        if result.page_numbers and retrieved_pages:
+            valid_pages = [p for p in result.page_numbers if p in retrieved_pages]
+            result.page_numbers = sorted(set(valid_pages if valid_pages else retrieved_pages))
+        elif not result.page_numbers and retrieved_pages:
             result.page_numbers = retrieved_pages
 
         return result

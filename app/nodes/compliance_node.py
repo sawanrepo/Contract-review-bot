@@ -5,8 +5,10 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-llm = ChatGoogleGenerativeAI(model=os.getenv("MODEL_NAME"))
-structured_model = llm.with_structured_output(ComplianceOutput)
+
+def get_llm():
+    model = os.getenv("MODEL_NAME", "gemini-2.5-flash")
+    return ChatGoogleGenerativeAI(model=model, temperature=0.1)
 
 template = PromptTemplate(
     input_variables=["context"],
@@ -32,5 +34,7 @@ Respond in this format:
 )
 
 def check_compliance(context: str) -> ComplianceOutput:
+    llm = get_llm()
+    structured_model = llm.with_structured_output(ComplianceOutput)
     chain = template | structured_model
     return chain.invoke({"context": context})

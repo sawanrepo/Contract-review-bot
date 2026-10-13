@@ -5,16 +5,15 @@ from langchain_community.vectorstores import FAISS
 import os
 
 _DEFAULT_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
-_global_embeddings = None
+_global_embeddings_cache = {}
 
 def get_shared_embeddings(model_name: str = _DEFAULT_MODEL_NAME):
-    global _global_embeddings
-    if _global_embeddings is None:
-        _global_embeddings = HuggingFaceEmbeddings(
+    if model_name not in _global_embeddings_cache:
+        _global_embeddings_cache[model_name] = HuggingFaceEmbeddings(
             model_name=model_name,
             model_kwargs={"device": "cpu"}
         )
-    return _global_embeddings
+    return _global_embeddings_cache[model_name]
 
 class VectorStore:
     def __init__(

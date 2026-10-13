@@ -1,89 +1,148 @@
-
 # 🤖 Contract Review Bot (LangGraph + Streamlit)
 
-An AI-powered contract analysis assistant that allows users to upload legal documents (PDF/TXT), analyze them with structured outputs, and interact through a Streamlit interface. The bot uses **LangChain**, **LangGraph**, **RAG**, and **FAISS**, with **schema-based reasoning** and memory.
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![LangGraph](https://img.shields.io/badge/Orchestration-LangGraph_0.4.5-orange.svg)](https://langchain-ai.github.io/langgraph/)
+[![Google Gemini](https://img.shields.io/badge/LLM-Gemini_2.5_Flash-purple.svg)](https://ai.google.dev/)
+[![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-red.svg)](https://streamlit.io/)
+[![Unit Tests](https://img.shields.io/badge/Tests-28_Passed-brightgreen.svg)]()
+
+An AI-powered legal document review and contract intelligence assistant built with **LangGraph**, **Google Gemini 2.5 Flash**, **FAISS**, and **Streamlit**. The system ingests PDF and TXT contracts, extracts page-grounded text chunks, coordinates specialized reasoning nodes via a directed state machine, and provides structured legal risk assessments, executive summaries, and clause Q&A.
 
 ---
 
-## 🧠 Features
-
-✅ Upload PDF or TXT contract files  
-✅ Page-wise chunking and semantic embedding using FAISS  
-✅ LangGraph-based multi-node reasoning:  
-  • Clause-level risk analysis  
-  • Semantic Q&A via RAG  
-  • Contract summarization  
-✅ Session memory for contextual conversation  
-✅ Structured responses via `Pydantic` schema  
-✅ Streamlit interface with clean UI and response highlights  
-
----
-
-## 📁 Project Structure
-
-```
-contract-review-bot/
-│
-├── app/
-│   ├── streamlit_app.py           # Main Streamlit frontend
-│   ├── document_loader.py         # PDF/TXT reading, page splitting
-│   ├── vectorstore.py             # Embedding + FAISS storage/search
-│   ├── langgraph_flow.py          # LangGraph flow and execution
-│   ├── memory.py                  # LangChain memory (per session)
-│   ├── schema.py                  # Pydantic schemas for structured output
-│   ├── utils.py                   # search with mutliple sub queries
-│    ├── tools.py                   # tools for Agents.
-│   └── nodes/                     # LangGraph nodes
-│       ├── classifier_node.py     # Route query to the right node
-│       ├── rag_node.py            # Retrieve + LLM answer
-│       ├── risk_node.py           # Risk scoring of clauses
-│       ├── summary_node.py        # Contract summarization
-│       └── compliance_node.py     # Rule-based compliance checks
-│
-├── temp_files/                    # User-uploaded contract PDFs/TXTs
-├── requirements.txt               # Python dependencies
-└── README.md                      # Project documentation
-```
+## 📑 Table of Contents
+- [Architecture Overview](#-architecture-overview)
+- [Key Features](#-key-features)
+- [LangGraph Workflow](#-langgraph-workflow)
+- [System Documentation](#-system-documentation)
+- [Technology Stack](#-technology-stack)
+- [Setup & Installation](#-setup--installation)
+- [Running the Application](#-running-the-application)
+- [Running the Test Suite](#-running-the-test-suite)
+- [Reliability & Security Considerations](#-reliability--security-considerations)
+- [Known Limitations](#-known-limitations)
+- [Future Enhancements](#-future-enhancements)
 
 ---
 
-## ⚙️ How It Works
+## 🏛 Architecture Overview
 
-### 🔄 1. Upload & Chunk
-- Upload PDF or TXT via Streamlit
-- Pages are split and chunked into logical text blocks
-- Chunks are embedded using Sentence Transformers (or OpenAI) and stored in FAISS
+The system decouples ingestion, in-memory semantic indexing, state orchestration, and presentation into clean, maintainable layers:
 
-### 🧠 2. LangGraph Reasoning
-LangGraph is used to intelligently route queries:
+```mermaid
+flowchart TD
+    User(["👤 User"]) --> UI["Streamlit Dashboard (app/streamlit_app.py)"]
+    UI --> Loader["Document Loader (app/document_loader.py)\n• 1-based page metadata\n• RecursiveSplitter (900/150)\n• Auto-cleanup temp files"]
+    Loader --> VStore["In-Memory VectorStore (app/vectorstore.py)\n• FAISS Index\n• sentence-transformers/all-MiniLM-L6-v2"]
+    
+    UI --> Graph["LangGraph Orchestrator (app/langgraph_flow.py)"]
+    Graph --> Classifier["classifier_node\n(Intent Classification)"]
+    Classifier --> Router{"route_intents()"}
+    
+    Router -->|"query_answer (or fallback)"| RAGNode["rag_node\n(Top-4 Chunks + Citation Grounding)"]
+    Router -->|"risk_analysis"| RiskNode["risk_node\n(Multi-Query Expansion + Severity)"]
+    Router -->|"summary"| SummaryNode["summary_node\n(Representative 5-Section Sampling)"]
+    
+    RAGNode --> Supervisor["supervisor_node\n• Fast-path passthrough (1 worker)\n• Synthesis LLM chain (>1 workers)\n• Deduplicated citation merge"]
+    RiskNode --> Supervisor
+    SummaryNode --> Supervisor
+    
+    Supervisor --> UI
+    
+    classDef comp fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#ffffff;
+    classDef router fill:#451a03,stroke:#f59e0b,stroke-width:2px,color:#ffffff;
+    class UI,Loader,VStore,Graph,Classifier,RAGNode,RiskNode,SummaryNode,Supervisor comp;
+    class Router router;
 ```
-Start → Classifier → 
-   ├─→ RAG (query answering)
-   ├─→ Risk Analysis (clause-level)
-   ├─→ Summarization
-   └─→ Compliance Check
-```
 
-### 💬 3. Streamlit UI
-- Show chat-style interactions
-- Highlight clause excerpts
-- Display risk scores and summaries
-- Maintain memory across interactions
+For full architectural breakdowns, see [`docs/architecture.md`](docs/architecture.md) and [`docs/architecture.svg`](docs/architecture.svg).
 
 ---
 
-## 🔧 Setup Instructions
+## 🧠 Key Features
 
-### 1. Clone the Repo
+- **Page-Aware Ingestion**: PDF pages are indexed with normalized 1-based integers (`page_number`). Recursive text splitting (900 chars, 150 overlap) prevents token truncation by sentence-transformer models.
+- **Strict Citation Grounding**: Responses reference verified document pages (`[Page 1, 4]`). Hallucinated page numbers generated by LLMs are programmatically stripped against actual retrieved evidence.
+- **Categorized Risk Scoring**: Clauses are analyzed for liabilities, uncapped damages, and one-sided termination, tagging overall severity as **High** 🔴, **Medium** 🟡, or **Low** 🟢.
+- **Structured Executive Summarization**: Uses representative sampling across document preamble, body, and tail to generate 5-section legal summaries rather than naive keyword search.
+- **LangGraph State Orchestration**:
+  - Typed state transitions via `GraphState`.
+  - Single-node **fast-path passthrough** eliminating redundant LLM synthesis calls.
+  - Multi-intent fan-out execution when users request both summaries and risk evaluations.
+  - Defensive fallback routing to prevent empty-branch graph deadlocks.
+- **Resource Caching & Ephemeral Privacy**: Embeddings are cached via `@st.cache_resource`, while FAISS vectors reside strictly in session memory—contracts are never permanently stored on disk.
+- **Exportable Audit Reports**: One-click Markdown audit report download directly from the Streamlit sidebar.
+
+---
+
+## 🔄 LangGraph Workflow
+
+The state machine graph defined in [`app/langgraph_flow.py`](app/langgraph_flow.py):
+
+```mermaid
+flowchart LR
+    Start([Start]) --> Classify["classify"]
+    Classify --> Route{"route_intents()"}
+    Route -->|"query_answer"| RAG["rag"]
+    Route -->|"risk_analysis"| Risk["risk"]
+    Route -->|"summary"| Summary["summary"]
+    Route -.->|"unrecognized"| RAG
+    RAG --> Sup["supervisor"]
+    Risk --> Sup
+    Summary --> Sup
+    Sup --> EndNode([End])
+```
+
+For complete node specifications, see [`docs/langgraph-workflow.md`](docs/langgraph-workflow.md).
+
+---
+
+## 📚 System Documentation
+
+Comprehensive system-design artifacts prepared for technical interviews and architectural reviews:
+
+| Document | Description |
+| :--- | :--- |
+| **[`docs/architecture.md`](docs/architecture.md)** | End-to-end component breakdown, data flow, and technology mapping |
+| **[`docs/architecture.svg`](docs/architecture.svg)** | Standalone vector graphic of the system architecture |
+| **[`docs/langgraph-workflow.md`](docs/langgraph-workflow.md)** | Detailed state machine node specifications and routing logic |
+| **[`docs/request-lifecycle.md`](docs/request-lifecycle.md)** | Step-by-step execution lifecycle with Mermaid sequence diagram |
+| **[`docs/design-decisions.md`](docs/design-decisions.md)** | In-depth engineering trade-offs and scaling strategies (1k–10k users) |
+| **[`docs/reliability-and-security.md`](docs/reliability-and-security.md)** | Security audit, vulnerability analysis, and reliability safeguards |
+
+---
+
+## 🛠 Technologies Used
+
+| Category | Technology | Purpose |
+| :--- | :--- | :--- |
+| **User Interface** | `Streamlit` | Web dashboard, chat history, sidebar stats, file uploader |
+| **Orchestrator** | `LangGraph` | Stateful directed graph, conditional fan-out, supervisor join |
+| **Foundation Model** | `Google Gemini 2.5 Flash` | Classification, RAG synthesis, risk scoring via Pydantic schemas |
+| **Embeddings** | `Sentence-Transformers` (`all-MiniLM-L6-v2`) | Local CPU dense vector embeddings (384 dimensions) |
+| **Vector Search** | `FAISS` (`faiss-cpu`) | In-memory similarity search and semantic indexing |
+| **Document Loaders** | `LangChain Core / Community` (`pypdf`) | PDF/TXT extraction and recursive character text splitting |
+| **Validation** | `Pydantic v2` | Typed schema contracts (`QueryOutput`, `IntentOutput`) |
+
+---
+
+## 🔧 Setup & Installation
+
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/contract-review-bot.git
-cd contract-review-bot
+git clone https://github.com/sawanrepo/Contract-review-bot.git
+cd Contract-review-bot
 ```
 
-### 2. Create Virtual Environment
+### 2. Create and Activate Virtual Environment
 ```bash
+# On Windows:
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+venv\Scripts\activate
+
+# On Linux/macOS:
+python3 -m venv venv
+source venv/bin/activate
 ```
 
 ### 3. Install Dependencies
@@ -91,39 +150,74 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Set Up Environment Variables
+### 4. Configure Environment Variables
+Copy `.env.template` to `.env`:
 ```bash
-cp .env.template .env # On Windows: copy .env.template .env
+# On Windows:
+copy .env.template .env
+
+# On Linux/macOS:
+cp .env.template .env
 ```
-#### Then open .env and fill in the required credentials or keys.
-
-
-### 5. Run Streamlit App
-```bash
-streamlit run app/streamlit_app.py #if fails try " streamlit run app/streamlit_app.py --server.fileWatcherType none "
+Open `.env` and configure your API keys:
+```ini
+GOOGLE_API_KEY=your_gemini_api_key_here
+MODEL_NAME=gemini-2.5-flash
+TAVILY_API_KEY=your_tavily_key_optional
 ```
 
 ---
 
-## 🛠 Technologies Used
+## 🚀 Running the Application
 
-| Tool/Library     | Purpose                          |
-|------------------|----------------------------------|
-| `Streamlit`      | UI for uploading, chat, results  |
-| `LangChain`      | Memory, tools, chains            |
-| `LangGraph`      | State-machine style reasoning    |
-| `faiss`          | Embedding vector search          |
-| `PyPDF2`, `fitz` | PDF text extraction              |
-| `Pydantic`       | Structured schema for outputs    |
+Start the Streamlit dashboard:
+```bash
+streamlit run app/streamlit_app.py
+```
+Open your browser at `http://localhost:8501`.
+
+> **Note**: A custom [`.streamlit/config.toml`](.streamlit/config.toml) is pre-configured with `fileWatcherType = "none"` to suppress PyTorch module inspection warnings on startup.
+
+---
+
+## 🧪 Running the Test Suite
+
+The project includes **28 automated unit tests** covering document loading, chunking, unsupported formats, FAISS search, intent routing, citation grounding, node fallbacks, and external tool handling. External API calls (Gemini, Tavily) are fully mocked so tests run offline in **~0.1 seconds** with zero API costs:
+
+```bash
+# Run test suite via standard unittest discovery:
+python -m unittest discover -s tests -p "test_*.py" -v
+```
+
+### Test Suite Structure:
+- `tests/test_document_loader.py`: TXT loading, 900-char chunk boundaries, unsupported extension rejection, temp file cleanup.
+- `tests/test_vectorstore.py`: Empty search handling, document addition, vector reset, model-keyed embedding cache.
+- `tests/test_classifier_and_routing.py`: Structured intent classification, error fallback, multi-branch routing.
+- `tests/test_nodes_and_graph.py`: RAG missing context, citation grounding against retrieved evidence, risk scoring, supervisor fast-path passthrough.
+- `tests/test_tools.py`: Compliance checker error handling, Tavily API key absence checks.
+
+---
+
+## 🔒 Reliability & Security Considerations
+
+- **Session Isolation**: Each browser tab operates on an isolated `st.session_state` with independent in-memory FAISS indices and conversation memories.
+- **Safe Temp File Handling**: Uploaded files write to process-isolated paths (`temp/upload_{pid}_{name}`) and are deterministically deleted in a `finally` block immediately after text extraction.
+- **Git Hygiene**: Local `.env` credentials, virtual environments, vector persistence folders, and uploaded PDF files are strictly ignored in [`.gitignore`](.gitignore).
+- **Anti-Hallucination Guardrails**: Model-generated citations are programmatically intersected with chunks actually retrieved from vector search.
+
+---
+
+## ⚠️ Known Limitations
+
+1. **In-Memory Ephemeral Storage**: Reloading the browser page resets the vector index, requiring the contract to be re-uploaded.
+2. **Scanned PDF OCR**: `PyPDFLoader` extracts text from digital PDFs. Scanned PDFs (pure images without text layers) require an OCR pre-processor like Tesseract or AWS Textract.
+3. **Free-Tier API Rate Limits**: Gemini Free Tier enforces a 5 RPM rate limit. Under heavy multi-user testing, responses may trigger rate limits; production use requires a Tier-1 API plan.
 
 ---
 
 ## 💡 Future Enhancements
 
-- Authentication and multi-user session support  
-- Export structured reports as PDF  
-- Clause highlighting inside rendered PDF  
-- Fine-tuned clause-type classification  
-- Custom contract template comparison  
-
----
+- **Visual PDF Highlighting**: Render interactive PDF bounding boxes on cited clauses using PDF.js or pdf2image.
+- **Persistent Multi-Tenancy**: Store vector embeddings in Qdrant or pgvector with tenant-isolated collection namespaces.
+- **Hybrid Dense + Sparse Search**: Integrate BM25 keyword matching with dense vectors via Reciprocal Rank Fusion (RRF) for specialized legal terminology.
+- **Dedicated ToolNode**: Expand `tools.py` into native LangGraph agent tool-calling with token budget caps.
