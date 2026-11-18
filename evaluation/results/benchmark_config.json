@@ -1,0 +1,92 @@
+{
+  "dataset_path": "CUAD_v1\\CUAD_v1\\CUAD_v1.json",
+  "txt_dir": "CUAD_v1\\CUAD_v1\\full_contract_txt",
+  "pdf_dir": "CUAD_v1\\CUAD_v1\\full_contract_pdf",
+  "output_dir": "evaluation\\results",
+  "num_contracts": 10,
+  "seed": 42,
+  "top_k": 10,
+  "chunk_size": 900,
+  "chunk_overlap": 150,
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "k_values": [
+    1,
+    3,
+    4,
+    5,
+    10
+  ],
+  "prefer_txt": true,
+  "selected_contracts": [
+    {
+      "title": "RaeSystemsInc_20001114_10-Q_EX-10.57_2631790_EX-10.57_Co-Branding Agreement",
+      "file_path": "CUAD_v1\\CUAD_v1\\full_contract_txt\\RaeSystemsInc_20001114_10-Q_EX-10.57_2631790_EX-10.57_Co-Branding Agreement.txt",
+      "file_type": "txt",
+      "num_chunks": 71,
+      "indexing_time_sec": 1.269
+    },
+    {
+      "title": "INGEVITYCORP_05_16_2016-EX-10.5-INTELLECTUAL PROPERTY AGREEMENT",
+      "file_path": "CUAD_v1\\CUAD_v1\\full_contract_txt\\INGEVITYCORP_05_16_2016-EX-10.5-INTELLECTUAL PROPERTY AGREEMENT.txt",
+      "file_type": "txt",
+      "num_chunks": 107,
+      "indexing_time_sec": 1.442
+    },
+    {
+      "title": "PROLONGINTERNATIONALCORP_03_23_1998-EX-10.16-SPONSORSHIP AGREEMENT",
+      "file_path": "CUAD_v1\\CUAD_v1\\full_contract_txt\\PROLONGINTERNATIONALCORP_03_23_1998-EX-10.16-SPONSORSHIP AGREEMENT.txt",
+      "file_type": "txt",
+      "num_chunks": 22,
+      "indexing_time_sec": 0.347
+    },
+    {
+      "title": "EMERALDHEALTHTHERAPEUTICSINC_06_10_2020-EX-4.5-CONSULTING AGREEMENT - DR. GAETANO MORELLO N.D. INC.",
+      "file_path": "CUAD_v1\\CUAD_v1\\full_contract_txt\\EMERALDHEALTHTHERAPEUTICSINC_06_10_2020-EX-4.5-CONSULTING AGREEMENT - DR. GAETANO MORELLO N.D. INC..txt",
+      "file_type": "txt",
+      "num_chunks": 30,
+      "indexing_time_sec": 0.381
+    },
+    {
+      "title": "NlsPharmaceuticsLtd_20200228_F-1_EX-10.14_12029046_EX-10.14_Development Agreement",
+      "file_path": "CUAD_v1\\CUAD_v1\\full_contract_txt\\NlsPharmaceuticsLtd_20200228_F-1_EX-10.14_12029046_EX-10.14_Development Agreement.txt",
+      "file_type": "txt",
+      "num_chunks": 115,
+      "indexing_time_sec": 1.551
+    },
+    {
+      "title": "CORIOINC_07_20_2000-EX-10.5-LICENSE AND HOSTING AGREEMENT",
+      "file_path": "CUAD_v1\\CUAD_v1\\full_contract_txt\\CORIOINC_07_20_2000-EX-10.5-LICENSE AND HOSTING AGREEMENT.txt",
+      "file_type": "txt",
+      "num_chunks": 100,
+      "indexing_time_sec": 1.239
+    },
+    {
+      "title": "VARIABLESEPARATEACCOUNT_04_30_2014-EX-13.C-UNCONDITIONAL CAPITAL MAINTENANCE AGREEMENT",
+      "file_path": "CUAD_v1\\CUAD_v1\\full_contract_txt\\VARIABLESEPARATEACCOUNT_04_30_2014-EX-13.C-UNCONDITIONAL CAPITAL MAINTENANCE AGREEMENT.txt",
+      "file_type": "txt",
+      "num_chunks": 24,
+      "indexing_time_sec": 0.321
+    },
+    {
+      "title": "GluMobileInc_20070319_S-1A_EX-10.09_436630_EX-10.09_Content License Agreement3",
+      "file_path": "CUAD_v1\\CUAD_v1\\full_contract_txt\\GluMobileInc_20070319_S-1A_EX-10.09_436630_EX-10.09_Content License Agreement3.txt",
+      "file_type": "txt",
+      "num_chunks": 6,
+      "indexing_time_sec": 0.098
+    },
+    {
+      "title": "HYDRONTECHNOLOGIESINC_03_31_1997-EX-10.47-SPONSORSHIP AGREEMENT",
+      "file_path": "CUAD_v1\\CUAD_v1\\full_contract_txt\\HYDRONTECHNOLOGIESINC_03_31_1997-EX-10.47-SPONSORSHIP AGREEMENT.txt",
+      "file_type": "txt",
+      "num_chunks": 45,
+      "indexing_time_sec": 0.536
+    },
+    {
+      "title": "KALLOINC_11_03_2011-EX-10.1-STRATEGIC ALLIANCE AGREEMENT",
+      "file_path": "CUAD_v1\\CUAD_v1\\full_contract_txt\\KALLOINC_11_03_2011-EX-10.1-STRATEGIC ALLIANCE AGREEMENT.txt",
+      "file_type": "txt",
+      "num_chunks": 122,
+      "indexing_time_sec": 1.631
+    }
+  ]
+}

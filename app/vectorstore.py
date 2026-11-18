@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -67,6 +67,11 @@ class VectorStore:
         if self.vectorstore is None:
             return []
         return self.vectorstore.similarity_search(query, k=k)
+
+    def search_with_score(self, query: str, k: int = 4) -> List[Tuple[Document, float]]:
+        if self.vectorstore is None:
+            return []
+        return self.vectorstore.similarity_search_with_score(query, k=k)
 
     def get_all_documents(self) -> List[Document]:
         return list(self.documents)
