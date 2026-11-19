@@ -96,7 +96,7 @@ def evaluate_single_contract(
     file_path = matched.file_path
 
     # Step 1: Load and chunk document
-    raw_chunks = load_documents(file_path)
+    raw_chunks = load_documents(file_path, chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap)
 
     # Step 2: Assign deterministic chunk metadata
     for idx, c in enumerate(raw_chunks):
@@ -130,7 +130,7 @@ def evaluate_single_contract(
 
             # Measure steady-state retrieval latency
             t_query_start = time.perf_counter()
-            search_results = vs.search_with_score(query_str, k=config.top_k)
+            search_results = vs.search_with_score(query_str, k=config.top_k, sparse_query=q.category)
             retrieval_latency_ms = (time.perf_counter() - t_query_start) * 1000.0
 
             retrieved_chunk_infos: List[RetrievedChunkInfo] = []

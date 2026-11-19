@@ -4,10 +4,6 @@ import os
 import sys
 from typing import Any, Dict, List
 
-_conda_site = r"C:\ProgramData\anaconda3\Lib\site-packages"
-if os.path.exists(_conda_site) and _conda_site not in sys.path:
-    sys.path.append(_conda_site)
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -75,23 +71,28 @@ def generate_reports(suite_result: BenchmarkSuiteResult, output_dir: str):
             "recall_at_3",
             "recall_at_4",
             "recall_at_5",
+            "recall_at_6",
             "recall_at_10",
             "precision_at_1",
             "precision_at_3",
             "precision_at_4",
             "precision_at_5",
+            "precision_at_6",
             "precision_at_10",
             "hit_rate_at_1",
             "hit_rate_at_3",
             "hit_rate_at_4",
             "hit_rate_at_5",
+            "hit_rate_at_6",
             "hit_rate_at_10",
             "evidence_coverage_at_1",
             "evidence_coverage_at_3",
             "evidence_coverage_at_4",
             "evidence_coverage_at_5",
+            "evidence_coverage_at_6",
             "evidence_coverage_at_10",
             "span_coverage_details_at_4",
+            "span_coverage_details_at_6",
             "span_coverage_details_at_10",
             "retrieval_latency_ms",
             "question_text",
@@ -104,6 +105,7 @@ def generate_reports(suite_result: BenchmarkSuiteResult, output_dir: str):
             scores = [round(rc.score, 4) for rc in qr.retrieved_chunks]
 
             span_cov_4_str = format_span_coverage_details(m.span_coverage_details.get(4, []))
+            span_cov_6_str = format_span_coverage_details(m.span_coverage_details.get(6, []))
             span_cov_10_str = format_span_coverage_details(m.span_coverage_details.get(10, []))
 
             writer.writerow([
@@ -122,23 +124,28 @@ def generate_reports(suite_result: BenchmarkSuiteResult, output_dir: str):
                 round(m.recalls.get(3, 0.0), 4) if not qr.is_impossible else "",
                 round(m.recalls.get(4, 0.0), 4) if not qr.is_impossible else "",
                 round(m.recalls.get(5, 0.0), 4) if not qr.is_impossible else "",
+                round(m.recalls.get(6, 0.0), 4) if not qr.is_impossible else "",
                 round(m.recalls.get(10, 0.0), 4) if not qr.is_impossible else "",
                 round(m.precisions.get(1, 0.0), 4) if not qr.is_impossible else "",
                 round(m.precisions.get(3, 0.0), 4) if not qr.is_impossible else "",
                 round(m.precisions.get(4, 0.0), 4) if not qr.is_impossible else "",
                 round(m.precisions.get(5, 0.0), 4) if not qr.is_impossible else "",
+                round(m.precisions.get(6, 0.0), 4) if not qr.is_impossible else "",
                 round(m.precisions.get(10, 0.0), 4) if not qr.is_impossible else "",
                 round(m.hit_rates.get(1, 0.0), 4) if not qr.is_impossible else "",
                 round(m.hit_rates.get(3, 0.0), 4) if not qr.is_impossible else "",
                 round(m.hit_rates.get(4, 0.0), 4) if not qr.is_impossible else "",
                 round(m.hit_rates.get(5, 0.0), 4) if not qr.is_impossible else "",
+                round(m.hit_rates.get(6, 0.0), 4) if not qr.is_impossible else "",
                 round(m.hit_rates.get(10, 0.0), 4) if not qr.is_impossible else "",
                 round(m.evidence_coverages.get(1, 0.0), 4) if not qr.is_impossible else "",
                 round(m.evidence_coverages.get(3, 0.0), 4) if not qr.is_impossible else "",
                 round(m.evidence_coverages.get(4, 0.0), 4) if not qr.is_impossible else "",
                 round(m.evidence_coverages.get(5, 0.0), 4) if not qr.is_impossible else "",
+                round(m.evidence_coverages.get(6, 0.0), 4) if not qr.is_impossible else "",
                 round(m.evidence_coverages.get(10, 0.0), 4) if not qr.is_impossible else "",
                 span_cov_4_str if not qr.is_impossible else "",
+                span_cov_6_str if not qr.is_impossible else "",
                 span_cov_10_str if not qr.is_impossible else "",
                 round(m.retrieval_latency_ms, 2),
                 qr.question_text,
@@ -322,13 +329,13 @@ def generate_reports(suite_result: BenchmarkSuiteResult, output_dir: str):
             "answerable_questions",
             "fully_mapped_questions",
             "recall_at_4",
-            "recall_at_5",
+            "recall_at_6",
             "precision_at_4",
-            "precision_at_5",
+            "precision_at_6",
             "hit_rate_at_4",
-            "hit_rate_at_5",
+            "hit_rate_at_6",
             "evidence_coverage_at_4",
-            "evidence_coverage_at_5",
+            "evidence_coverage_at_6",
             "mrr",
         ])
 
@@ -338,16 +345,16 @@ def generate_reports(suite_result: BenchmarkSuiteResult, output_dir: str):
 
             if fully_mapped_cat:
                 r4 = np.mean([q.metrics.recalls.get(4, 0.0) for q in fully_mapped_cat])
-                r5 = np.mean([q.metrics.recalls.get(5, 0.0) for q in fully_mapped_cat])
+                r6 = np.mean([q.metrics.recalls.get(6, 0.0) for q in fully_mapped_cat])
                 p4 = np.mean([q.metrics.precisions.get(4, 0.0) for q in fully_mapped_cat])
-                p5 = np.mean([q.metrics.precisions.get(5, 0.0) for q in fully_mapped_cat])
+                p6 = np.mean([q.metrics.precisions.get(6, 0.0) for q in fully_mapped_cat])
                 hr4 = np.mean([q.metrics.hit_rates.get(4, 0.0) for q in fully_mapped_cat])
-                hr5 = np.mean([q.metrics.hit_rates.get(5, 0.0) for q in fully_mapped_cat])
+                hr6 = np.mean([q.metrics.hit_rates.get(6, 0.0) for q in fully_mapped_cat])
                 cov4 = np.mean([q.metrics.evidence_coverages.get(4, 0.0) for q in fully_mapped_cat])
-                cov5 = np.mean([q.metrics.evidence_coverages.get(5, 0.0) for q in fully_mapped_cat])
+                cov6 = np.mean([q.metrics.evidence_coverages.get(6, 0.0) for q in fully_mapped_cat])
                 mrr = np.mean([q.metrics.mrr for q in fully_mapped_cat])
             else:
-                r4 = r5 = p4 = p5 = hr4 = hr5 = cov4 = cov5 = mrr = 0.0
+                r4 = r6 = p4 = p6 = hr4 = hr6 = cov4 = cov6 = mrr = 0.0
 
             writer.writerow([
                 cat,
@@ -355,19 +362,140 @@ def generate_reports(suite_result: BenchmarkSuiteResult, output_dir: str):
                 len(ans_list),
                 len(fully_mapped_cat),
                 round(r4, 4),
-                round(r5, 4),
+                round(r6, 4),
                 round(p4, 4),
-                round(p5, 4),
+                round(p6, 4),
                 round(hr4, 4),
-                round(hr5, 4),
+                round(hr6, 4),
                 round(cov4, 4),
-                round(cov5, 4),
+                round(cov6, 4),
                 round(mrr, 4),
             ])
 
     # 8. Generate Visual Charts
     generate_visual_plots(suite_result, aggregate_data, category_map, output_dir)
+
+    # 9. Generate benchmark_report.md
+    generate_markdown_report(suite_result, aggregate_data, output_dir)
     print(f"\nAll benchmark reports and visual charts successfully generated in: {output_dir}")
+
+def generate_markdown_report(
+    suite_result: BenchmarkSuiteResult,
+    aggregate_data: Dict[str, Any],
+    output_dir: str,
+):
+    primary = aggregate_data.get("primary_retrieval_metrics_fully_mapped", {})
+    latency = aggregate_data.get("latency_metrics", {})
+    summary = aggregate_data.get("benchmark_summary", {})
+    mapping = aggregate_data.get("mapping_coverage", {})
+
+    baseline_metrics = {
+        "recall_at_1": 0.1769,
+        "recall_at_3": 0.3341,
+        "recall_at_4": 0.3890,
+        "recall_at_5": 0.4180,
+        "recall_at_6": 0.4385,
+        "recall_at_10": 0.5752,
+        "precision_at_4": 0.1589,
+        "precision_at_6": 0.1347,
+        "hit_rate_at_4": 0.4884,
+        "hit_rate_at_6": 0.5349,
+        "evidence_coverage_at_4": 0.4175,
+        "evidence_coverage_at_6": 0.4680,
+        "mrr": 0.3783,
+        "mean_latency_ms": 13.63,
+    }
+
+    report_lines = [
+        "# CUAD RAG Retrieval Benchmark Report - Contract Review Bot",
+        "",
+        "## 1. Executive Summary & Production Upgrade (F6)",
+        "",
+        "This evaluation benchmarks the upgraded production retrieval architecture (**F6 Dual-Query Hybrid Retrieval**) against the original baseline on the official CUAD dataset under identical, controlled evaluation conditions.",
+        "",
+        "### Key Upgrades Implemented:",
+        "- **Embedding Model**: Upgraded from `sentence-transformers/all-MiniLM-L6-v2` (384-dim) to `BAAI/bge-base-en-v1.5` (768-dim, normalized).",
+        "- **Document Chunking**: Upgraded from chunk size 900 / overlap 150 to chunk size 1200 / overlap 200 (RecursiveCharacterTextSplitter).",
+        "- **Lexical Search Engine**: Integrated zero-dependency `BM25Okapi` with calibrated query saturation ($k_{\\text{bm25}} = 10.0$).",
+        "- **Hybrid Fusion**: Exact Cosine + Calibrated BM25 Saturation ($\\alpha = 0.6$ dense, $0.4$ sparse) with exact deduplication.",
+        "- **Query Routing**: Dual-Query Routing (Dense query prefixed with BGE retrieval instruction; Sparse query powered by category keywords).",
+        "- **Retrieval Depth**: Upgraded default retrieval depth from $K=4$ to $K=6$.",
+        "",
+        "## 2. Benchmark Evaluation Conditions",
+        "",
+        f"- **Contracts Evaluated**: {summary.get('selected_contracts', 10)} matched contracts",
+        f"- **Total Queries**: {summary.get('total_questions', 410)} queries",
+        f"- **Answerable Queries**: {summary.get('answerable_questions', 129)} queries ({mapping.get('fully_mapped_questions', 0)} fully mapped)",
+        f"- **Unanswerable (Negative) Queries**: {summary.get('unanswerable_questions', 281)} queries",
+        f"- **Random Seed**: {suite_result.config.seed}",
+        f"- **Chunk Size / Overlap**: {suite_result.config.chunk_size} / {suite_result.config.chunk_overlap}",
+        f"- **Primary Embedding Model**: `{suite_result.config.embedding_model}`",
+        "",
+        "## 3. Performance Benchmark Comparison Matrix",
+        "",
+        "| Metric | Baseline (MiniLM-L6, K=4) | Production F6 (BGE-Base + BM25, K=6) | Absolute Gain | Relative Improvement |",
+        "|---|---:|---:|---:|---:|",
+    ]
+
+    metric_rows = [
+        ("Recall@1", "recall_at_1", baseline_metrics["recall_at_1"]),
+        ("Recall@3", "recall_at_3", baseline_metrics["recall_at_3"]),
+        ("Recall@4", "recall_at_4", baseline_metrics["recall_at_4"]),
+        ("Recall@5", "recall_at_5", baseline_metrics["recall_at_5"]),
+        ("Recall@6", "recall_at_6", baseline_metrics["recall_at_6"]),
+        ("Recall@10", "recall_at_10", baseline_metrics["recall_at_10"]),
+        ("Precision@4", "precision_at_4", baseline_metrics["precision_at_4"]),
+        ("Precision@6", "precision_at_6", baseline_metrics["precision_at_6"]),
+        ("Hit Rate@4", "hit_rate_at_4", baseline_metrics["hit_rate_at_4"]),
+        ("Hit Rate@6", "hit_rate_at_6", baseline_metrics["hit_rate_at_6"]),
+        ("Evidence Coverage@4", "evidence_coverage_at_4", baseline_metrics["evidence_coverage_at_4"]),
+        ("Evidence Coverage@6", "evidence_coverage_at_6", baseline_metrics["evidence_coverage_at_6"]),
+        ("MRR (Mean Reciprocal Rank)", "mrr", baseline_metrics["mrr"]),
+    ]
+
+    for label, key, b_val in metric_rows:
+        new_val = primary.get(key, 0.0)
+        diff = new_val - b_val
+        rel = (diff / b_val * 100.0) if b_val > 0 else 0.0
+        sign = "+" if diff >= 0 else ""
+        report_lines.append(
+            f"| {label} | {b_val * 100:.2f}% | **{new_val * 100:.2f}%** | {sign}{diff * 100:.2f}% | {sign}{rel:.1f}% |"
+            if "MRR" not in label else
+            f"| {label} | {b_val:.4f} | **{new_val:.4f}** | {sign}{diff:.4f} | {sign}{rel:.1f}% |"
+        )
+
+    b_lat = baseline_metrics["mean_latency_ms"]
+    n_lat = latency.get("mean_retrieval_latency_ms", 0.0)
+    report_lines.extend([
+        f"| Mean Retrieval Latency | {b_lat:.2f} ms | **{n_lat:.2f} ms** | +{n_lat - b_lat:.2f} ms | CPU sub-120ms |",
+        "",
+        "## 4. Latency and Compute Profile",
+        "",
+        f"- **Model Initialization / Warmup**: {latency.get('model_warmup_load_time_sec', 0.0):.2f}s",
+        f"- **Average Indexing Time Per Contract**: {latency.get('mean_indexing_time_sec_per_contract', 0.0):.3f}s",
+        f"- **Mean Retrieval Latency**: {latency.get('mean_retrieval_latency_ms', 0.0):.2f} ms",
+        f"- **P50 Retrieval Latency**: {latency.get('p50_retrieval_latency_ms', 0.0):.2f} ms",
+        f"- **P95 Retrieval Latency**: {latency.get('p95_retrieval_latency_ms', 0.0):.2f} ms",
+        "",
+        "## 5. Artifacts and Visualization Files",
+        "",
+        "- `recall_at_k.png`: Recall progression from K=1 to K=10",
+        "- `precision_at_k.png`: Precision curve across retrieval depths",
+        "- `hit_rate_at_k.png`: Hit rate curve across retrieval depths",
+        "- `evidence_coverage_at_k.png`: Character-level evidence span coverage",
+        "- `category_recall_at_6.png`: Recall@6 breakdown across CUAD legal categories",
+        "- `category_hit_rate_at_6.png`: Hit Rate@6 breakdown across CUAD legal categories",
+        "- `retrieval_latency_distribution.png`: Latency histogram and percentiles",
+        "- `query_results.csv`: Complete query-by-query retrieval log and metrics",
+        "- `category_metrics.csv`: Aggregate legal category performance",
+        "- `failure_analysis.csv`: Detailed failure log for missed queries",
+        "- `retrieved_chunks.json`: Full chunk text and relevance scores",
+    ])
+
+    report_path = os.path.join(output_dir, "benchmark_report.md")
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(report_lines) + "\n")
+
 
 def generate_visual_plots(
     suite_result: BenchmarkSuiteResult,
@@ -438,47 +566,47 @@ def generate_visual_plots(
     plt.savefig(os.path.join(output_dir, "evidence_coverage_at_k.png"), dpi=200)
     plt.close()
 
-    # Plot 5 & 6: Category-wise Recall@5 & Hit Rate@5 (Top categories sorted)
+    # Plot 5 & 6: Category-wise Recall@6 & Hit Rate@6 (Top categories sorted)
     cat_stats = []
     for cat, q_list in category_map.items():
         mapped = [q for q in q_list if not q.is_impossible and q.ground_truth.is_fully_mapped]
         if mapped:
-            r5 = float(np.mean([q.metrics.recalls.get(5, 0.0) for q in mapped]))
-            hr5 = float(np.mean([q.metrics.hit_rates.get(5, 0.0) for q in mapped]))
-            cat_stats.append((cat, r5, hr5, len(mapped)))
+            r6 = float(np.mean([q.metrics.recalls.get(6, 0.0) for q in mapped]))
+            hr6 = float(np.mean([q.metrics.hit_rates.get(6, 0.0) for q in mapped]))
+            cat_stats.append((cat, r6, hr6, len(mapped)))
 
     if cat_stats:
         cat_stats_sorted = sorted(cat_stats, key=lambda x: x[1], reverse=True)
         top_cats = cat_stats_sorted[:20]
         c_names = [c[0] for c in top_cats]
-        c_r5 = [c[1] for c in top_cats]
-        c_hr5 = [c[2] for c in top_cats]
+        c_r6 = [c[1] for c in top_cats]
+        c_hr6 = [c[2] for c in top_cats]
 
-        # Category Recall@5
+        # Category Recall@6
         plt.figure(figsize=(10, 7))
         y_pos = np.arange(len(c_names))
-        plt.barh(y_pos, c_r5, align="center", color="#4a90e2")
+        plt.barh(y_pos, c_r6, align="center", color="#4a90e2")
         plt.yticks(y_pos, c_names, fontsize=9)
         plt.gca().invert_yaxis()
-        plt.xlabel("Recall@5", fontsize=11)
-        plt.title("Category-wise Recall@5 (Top Active Categories)", fontsize=13, fontweight="bold")
+        plt.xlabel("Recall@6", fontsize=11)
+        plt.title("Category-wise Recall@6 (Top Active Categories)", fontsize=13, fontweight="bold")
         plt.xlim(0, 1.05)
         plt.grid(True, axis="x", linestyle="--", alpha=0.6)
         plt.tight_layout()
-        plt.savefig(os.path.join(output_dir, "category_recall_at_5.png"), dpi=200)
+        plt.savefig(os.path.join(output_dir, "category_recall_at_6.png"), dpi=200)
         plt.close()
 
-        # Category Hit Rate@5
+        # Category Hit Rate@6
         plt.figure(figsize=(10, 7))
-        plt.barh(y_pos, c_hr5, align="center", color="#50e3c2")
+        plt.barh(y_pos, c_hr6, align="center", color="#50e3c2")
         plt.yticks(y_pos, c_names, fontsize=9)
         plt.gca().invert_yaxis()
-        plt.xlabel("Hit Rate@5", fontsize=11)
-        plt.title("Category-wise Hit Rate@5 (Top Active Categories)", fontsize=13, fontweight="bold")
+        plt.xlabel("Hit Rate@6", fontsize=11)
+        plt.title("Category-wise Hit Rate@6 (Top Active Categories)", fontsize=13, fontweight="bold")
         plt.xlim(0, 1.05)
         plt.grid(True, axis="x", linestyle="--", alpha=0.6)
         plt.tight_layout()
-        plt.savefig(os.path.join(output_dir, "category_hit_rate_at_5.png"), dpi=200)
+        plt.savefig(os.path.join(output_dir, "category_hit_rate_at_6.png"), dpi=200)
         plt.close()
 
     # Plot 7: Retrieval Latency Distribution

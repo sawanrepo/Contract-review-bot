@@ -33,7 +33,7 @@ def rag_answer(query: str, context, memory: list = None) -> QueryOutput:
             page_numbers=[]
         )
 
-    docs = context.search(query, k=4)
+    docs = context.search(query, k=6)
     if not docs:
         return QueryOutput(
             answer="I could not find any relevant sections in the uploaded contract matching your query.",

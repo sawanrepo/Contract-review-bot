@@ -11,7 +11,7 @@ except Exception:
 
 
 st.set_page_config(
-    page_title="Contract Review Bot 🤖",
+    page_title="Contract Review Bot ",
     page_icon="⚖️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -24,9 +24,9 @@ from langgraph_flow import contract_graph
 from memory import ChatMemory
 from schema import QueryOutput
 
-@st.cache_resource(show_spinner="🧠 Loading embedding model...")
+@st.cache_resource(show_spinner="🧠 Loading BGE-Base embedding model...")
 def get_cached_embeddings():
-    return get_shared_embeddings("sentence-transformers/all-MiniLM-L6-v2")
+    return get_shared_embeddings("BAAI/bge-base-en-v1.5")
 
 embedding_model = get_cached_embeddings()
 

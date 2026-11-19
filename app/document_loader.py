@@ -4,7 +4,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from typing import List
 import os
 
-def load_documents(file_path) -> List[Document]:
+def load_documents(file_path, chunk_size: int = 1200, chunk_overlap: int = 200) -> List[Document]:
     is_temp_created = False
     if hasattr(file_path, 'name') and hasattr(file_path, 'getbuffer'):
         temp_dir = "temp"
@@ -24,8 +24,8 @@ def load_documents(file_path) -> List[Document]:
         extension = os.path.splitext(file_path_to_use)[1].lower()
         text_splitter = RecursiveCharacterTextSplitter(
             separators=["\n\n", "\n", " ", ""],
-            chunk_size=900,
-            chunk_overlap=150,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
             length_function=len,
             is_separator_regex=False
         )

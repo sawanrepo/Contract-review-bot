@@ -3,7 +3,7 @@ import os
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
-DEFAULT_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+DEFAULT_MODEL_NAME = "BAAI/bge-base-en-v1.5"
 
 @dataclass
 class EvaluationConfig:
@@ -14,10 +14,10 @@ class EvaluationConfig:
     num_contracts: Optional[int] = 10  # None means evaluate all contracts
     seed: int = 42
     top_k: int = 10
-    chunk_size: int = 900
-    chunk_overlap: int = 150
+    chunk_size: int = 1200
+    chunk_overlap: int = 200
     embedding_model: str = DEFAULT_MODEL_NAME
-    k_values: Tuple[int, ...] = (1, 3, 4, 5, 10)
+    k_values: Tuple[int, ...] = (1, 3, 4, 5, 6, 10)
     prefer_txt: bool = True
 
     def to_dict(self) -> dict:
@@ -85,14 +85,14 @@ def parse_args() -> EvaluationConfig:
     parser.add_argument(
         "--chunk-size",
         type=int,
-        default=900,
-        help="Chunk size for document splitter (default: 900)",
+        default=1200,
+        help="Chunk size for document splitter (default: 1200)",
     )
     parser.add_argument(
         "--chunk-overlap",
         type=int,
-        default=150,
-        help="Chunk overlap for document splitter (default: 150)",
+        default=200,
+        help="Chunk overlap for document splitter (default: 200)",
     )
     parser.add_argument(
         "--embedding-model",

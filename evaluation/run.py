@@ -9,11 +9,6 @@ os.environ["TRANSFORMERS_OFFLINE"] = "1"
 # Add project root to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# If matplotlib is installed in host/conda environment, allow fallback lookup
-_conda_site = r"C:\ProgramData\anaconda3\Lib\site-packages"
-if os.path.exists(_conda_site) and _conda_site not in sys.path:
-    sys.path.append(_conda_site)
-
 from evaluation.config import parse_args
 from evaluation.contract_selector import select_contracts
 from evaluation.dataset_parser import load_cuad_dataset

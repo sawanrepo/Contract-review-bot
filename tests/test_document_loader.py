@@ -44,8 +44,8 @@ class TestDocumentLoader(unittest.TestCase):
         chunks = load_documents(txt_path)
         self.assertGreater(len(chunks), 1)
         for chunk in chunks:
-            # Chunk size limit is 900
-            self.assertLessEqual(len(chunk.page_content), 1000)
+            # Chunk size limit is 1200
+            self.assertLessEqual(len(chunk.page_content), 1300)
 
     def test_unsupported_file_type(self):
         csv_path = os.path.join(self.temp_dir.name, "data.csv")
